@@ -73,7 +73,7 @@ public class StreamSource {
 		
 		for (int i = 0; i < response.length(); ++i) {
 			JSONObject jo = response.getJSONObject(i);
-			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description")));		
+			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description"), this));		
 		}
 		
 		return rl;
@@ -86,7 +86,7 @@ public class StreamSource {
 		
 		for (int i = 0; i < response.length(); ++i) {
 			JSONObject jo = response.getJSONObject(i);
-			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description")));		
+			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description"), this));		
 		}
 		
 		return rl;
@@ -99,7 +99,7 @@ public class StreamSource {
 		
 		for (int i = 0; i < response.length(); ++i) {
 			JSONObject jo = response.getJSONObject(i);
-			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description")));		
+			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description"), this));		
 		}
 		
 		return rl;

@@ -43,4 +43,9 @@ public class StreamDescription {
 		return country;
 	}
 	
+	@Override
+	public String toString() {		
+		return name;
+	}
+	
 }
