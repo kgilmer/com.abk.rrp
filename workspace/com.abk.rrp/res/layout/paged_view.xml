@@ -26,32 +26,7 @@
         android:layout_height="fill_parent" >
        
     </greendroid.widget.PagedView>
-    <!--
-	<greendroid.widget.PageIndicator
-		android:id="@+id/page_indicator_prev"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_gravity="bottom|left"
-		android:paddingBottom="10dp"
-		android:paddingRight="15dp"
-		android:paddingTop="25dp"
-		android:paddingLeft="15dp"
-		greendroid:dotType="multiple"
-		greendroid:gravity="left" />
-
-	<greendroid.widget.PageIndicator
-		android:id="@+id/page_indicator_next"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_gravity="bottom|right"
-		android:paddingBottom="10dp"
-		android:paddingRight="15dp"
-		android:paddingTop="25dp"
-		android:paddingLeft="15dp"
-		greendroid:dotType="multiple"
-		greendroid:gravity="right" />
-    -->     
-
+   
     <greendroid.widget.PageIndicator
         android:id="@+id/page_indicator_other"
         android:layout_width="wrap_content"

@@ -29,6 +29,8 @@ import java.util.Map;
 import org.json.JSONException;
 
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,8 +38,10 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.abk.rrp.model.StreamCategory;
 import com.abk.rrp.model.StreamDescription;
@@ -45,16 +49,12 @@ import com.abk.rrp.model.StreamDirectoryClient;
 
 public class PlayerActivity extends GDActivity {
 	private final static String API_KEY = "8371fe0078a1f16f35168a08fab7bfb670b5eb5d";
-	
-	//private static final int PAGE_COUNT = 7;
-	//private static final int PAGE_MAX_INDEX = PAGE_COUNT - 1;
 
 	private PageIndicator mPageIndicatorOther;
-	private ArrayAdapter<String> stationListAdapter;
 
 	private StreamDirectoryClient streamClient;
 
-	private List<StreamCategory> primaryCategories;	
+	private List<StreamCategory> primaryCategories;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -65,17 +65,15 @@ public class PlayerActivity extends GDActivity {
 
 		final PagedView pagedView = (PagedView) findViewById(R.id.paged_view);
 		pagedView.setOnPageChangeListener(mOnPagedViewChangedListener);
-		try {				
+		try {
 			mPageIndicatorOther = (PageIndicator) findViewById(R.id.page_indicator_other);
-			
+
 			streamClient = new StreamDirectoryClient(API_KEY);
-		
+
 			primaryCategories = streamClient.getDirectories().get(0).getSources().getPrimaryCategories();
 			pagedView.setAdapter(new CategorySwipeAdapter(primaryCategories));
 			mPageIndicatorOther.setDotCount(primaryCategories.size());
-			
-			//stationListAdapter = new ArrayAdapter<String>(this, R.layout.list_item, planetList);
-			
+
 			setActivePage(pagedView.getCurrentPage());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -83,15 +81,20 @@ public class PlayerActivity extends GDActivity {
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}				
+		}
 	}
 
 	private void setActivePage(int page) {
 		mPageIndicatorOther.setActiveDot(page);
-		/*
-		 * mPageIndicatorNext.setActiveDot(PAGE_MAX_INDEX - page);
-		 * mPageIndicatorPrev.setActiveDot(page);
-		 */
+	}
+
+	private void playStream(String streamUrl, ImageView image) throws IllegalArgumentException, IllegalStateException, IOException {
+		MediaPlayer mediaPlayer = new MediaPlayer();
+		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		mediaPlayer.setDataSource(streamUrl);
+		mediaPlayer.prepare(); // might take long! (for buffering, etc)
+		mediaPlayer.start();
+		image.setImageResource(R.drawable.ic_stop);
 	}
 
 	private final OnPagedViewChangeListener mOnPagedViewChangedListener = new OnPagedViewChangeListener() {
@@ -116,7 +119,7 @@ public class PlayerActivity extends GDActivity {
 		private final Map<Integer, ListAdapter> adapters;
 
 		public CategorySwipeAdapter(List<StreamCategory> primaryCategories) {
-			categories = primaryCategories;	
+			categories = primaryCategories;
 			adapters = new HashMap<Integer, ListAdapter>();
 		}
 
@@ -141,18 +144,18 @@ public class PlayerActivity extends GDActivity {
 				convertView = getLayoutInflater().inflate(R.layout.paged_view_item, parent, false);
 				((ListView) convertView).setOnItemClickListener(new StationSelectedListener());
 			}
-			
+
 			ListView stationListView = ((ListView) convertView);
-			
+
 			if (!adapters.containsKey(position)) {
 				StreamCategory category = (StreamCategory) getItem(position);
-				
+
 				List<StreamDescription> streams;
 				try {
 					streams = category.getStreams();
-					
+
 					adapters.put(position, new StreamDescriptionArrayAdapter(PlayerActivity.this, R.layout.list_item, streams));
-					
+
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -161,31 +164,68 @@ public class PlayerActivity extends GDActivity {
 					e.printStackTrace();
 				}
 			}
-			
+
 			stationListView.setAdapter(adapters.get(position));
 			return convertView;
 		}
 
 	}
-	
+
 	private class StationSelectedListener implements OnItemClickListener {
 
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			Object item = parent.getItemAtPosition(position);
-			System.out.println(item.toString());
-			
+			StreamDescription stream = (StreamDescription) parent.getItemAtPosition(position);
+
+			try {
+				ImageView image=(ImageView) view.findViewById(R.id.list_item_action_image);
+				image.setImageResource(R.drawable.ic_wait);
+				playStream(stream.getStreamUrl(), image);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
-		
 	}
-	
+
 	private class StreamDescriptionArrayAdapter extends ArrayAdapter<StreamDescription> {
 
-		public StreamDescriptionArrayAdapter(Context context, int textViewResourceId, List<StreamDescription> objects) {
-			super(context, textViewResourceId, objects);			
+		private final List<StreamDescription> streamDescs;
+
+		public StreamDescriptionArrayAdapter(Context context, int textViewResourceId, List<StreamDescription> streamDescs) {
+			super(context, textViewResourceId, streamDescs);
+			this.streamDescs = streamDescs;
+		}
+		
+		@Override
+		public int getCount() {
+			
+			return streamDescs.size();
+		}
+		
+		@Override
+		public StreamDescription getItem(int position) {
+			return streamDescs.get(position);
+		}
+		
+		@Override
+		public long getItemId(int position) {		
+			return position;
 		}
 
-		
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			View vi = convertView;
+			if (convertView == null)
+				vi = getLayoutInflater().inflate(R.layout.list_item, null);
+
+			TextView text = (TextView) vi.findViewById(R.id.list_item_title);
+			ImageView image=(ImageView)vi.findViewById(R.id.list_item_action_image);
+			text.setText(streamDescs.get(position).getName());
+			image.setImageResource(R.drawable.ic_play);
+			// imageLoader.DisplayImage(data[position], image);
+			return vi;
+		}
 	}
 }
