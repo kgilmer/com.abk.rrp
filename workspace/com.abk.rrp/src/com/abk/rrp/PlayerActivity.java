@@ -22,7 +22,6 @@ import greendroid.widget.PagedView;
 import greendroid.widget.PagedView.OnPagedViewChangeListener;
 import android.os.Bundle;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
@@ -32,8 +31,8 @@ public class PlayerActivity extends GDActivity {
     private static final int PAGE_COUNT = 7;
     private static final int PAGE_MAX_INDEX = PAGE_COUNT - 1;
 
-    private PageIndicator mPageIndicatorNext;
-    private PageIndicator mPageIndicatorPrev;
+   /* private PageIndicator mPageIndicatorNext;
+    private PageIndicator mPageIndicatorPrev;*/
     private PageIndicator mPageIndicatorOther;
 
     @Override
@@ -47,7 +46,7 @@ public class PlayerActivity extends GDActivity {
         pagedView.setOnPageChangeListener(mOnPagedViewChangedListener);
         pagedView.setAdapter(new PhotoSwipeAdapter());
  
-        mPageIndicatorNext = (PageIndicator) findViewById(R.id.page_indicator_next);
+       /* mPageIndicatorNext = (PageIndicator) findViewById(R.id.page_indicator_next);
         mPageIndicatorNext.setDotCount(PAGE_MAX_INDEX);
         mPageIndicatorNext.setOnClickListener(new OnClickListener() {
             @Override
@@ -63,7 +62,7 @@ public class PlayerActivity extends GDActivity {
 			public void onClick(View v) {
                 pagedView.smoothScrollToPrevious();
             }
-        });
+        });*/
         
         mPageIndicatorOther = (PageIndicator) findViewById(R.id.page_indicator_other);
         mPageIndicatorOther.setDotCount(PAGE_COUNT);
@@ -73,8 +72,8 @@ public class PlayerActivity extends GDActivity {
     
     private void setActivePage(int page) {
         mPageIndicatorOther.setActiveDot(page);
-        mPageIndicatorNext.setActiveDot(PAGE_MAX_INDEX - page);
-        mPageIndicatorPrev.setActiveDot(page);
+       /* mPageIndicatorNext.setActiveDot(PAGE_MAX_INDEX - page);
+        mPageIndicatorPrev.setActiveDot(page);*/
     }
     
     private final OnPagedViewChangeListener mOnPagedViewChangedListener = new OnPagedViewChangeListener() {
