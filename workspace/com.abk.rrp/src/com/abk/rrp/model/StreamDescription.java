@@ -4,8 +4,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 
+/**
+ * Metadata for a specific audio stream.
+ * 
+ * @author kgilmer
+ *
+ */
 public class StreamDescription {
 	
+	/**
+	 * Value for bitrate when none is defined or available.
+	 */
 	public static final int NO_BITRATE_DEFINED_VALUE = -1;
 	private final String id;
 	private final String name;
@@ -15,6 +24,13 @@ public class StreamDescription {
 	private final String country;
 	private String streamUrl;
 	
+	/**
+	 * @param id id of stream (id defined by stream directory)
+	 * @param name name of stream
+	 * @param url url to access stream data.  May or may not be the actual audio stream (ex: .pls).
+	 * @param bitrate bitrate of stream
+	 * @param country country of origin
+	 */
 	public StreamDescription(String id, String name, String url, int bitrate, String country) {
 		super();
 		this.id = id;
@@ -24,30 +40,52 @@ public class StreamDescription {
 		this.country = country;
 	}
 	
+	/**
+	 * @return true if bitrate defined for stream.
+	 */
 	public boolean hasBitrate() {
 		return bitrate != NO_BITRATE_DEFINED_VALUE;
 	}
 
+	/**
+	 * @return id
+	 */
 	public String getId() {
 		return id;
 	}
 
+	/**
+	 * @return name
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * @return url
+	 */
 	public String getUrl() {
 		return url;
 	}
 
+	/**
+	 * @return bitrate
+	 */
 	public int getBitrate() {
 		return bitrate;
 	}
 
+	/**
+	 * @return country
+	 */
 	public String getCountry() {
 		return country;
 	}
 	
+	/**
+	 * @return url of actual audio stream.  May or may not be the same as the url field and may require network access to resolve.
+	 * @throws IOException
+	 */
 	public String getStreamUrl() throws IOException {
 		if (streamUrl == null) {
 			

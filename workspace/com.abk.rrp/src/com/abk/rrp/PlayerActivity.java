@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Cyril Mottier (http://www.cyrilmottier.com)
+ * Copyright (C) 2012 Ken Gilmer
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,14 @@ import java.util.Map;
 
 import org.json.JSONException;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -47,14 +51,23 @@ import com.abk.rrp.model.StreamCategory;
 import com.abk.rrp.model.StreamDescription;
 import com.abk.rrp.model.StreamDirectoryClient;
 
+/**
+ * Entry point to application.
+ * 
+ * @author kgilmer
+ *
+ */
 public class PlayerActivity extends GDActivity {
+	private final static String TAG = PlayerActivity.class.getPackage().getName();
 	private final static String API_KEY = "8371fe0078a1f16f35168a08fab7bfb670b5eb5d";
 
-	private PageIndicator mPageIndicatorOther;
+	private PageIndicator pageIndicator;
 
 	private StreamDirectoryClient streamClient;
 
 	private List<StreamCategory> primaryCategories;
+	private MediaPlayer mediaPlayer;
+	private boolean mediaPlayerPlaying = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -65,36 +78,59 @@ public class PlayerActivity extends GDActivity {
 
 		final PagedView pagedView = (PagedView) findViewById(R.id.paged_view);
 		pagedView.setOnPageChangeListener(mOnPagedViewChangedListener);
+		
 		try {
-			mPageIndicatorOther = (PageIndicator) findViewById(R.id.page_indicator_other);
+			pageIndicator = (PageIndicator) findViewById(R.id.page_indicator_other);
 
 			streamClient = new StreamDirectoryClient(API_KEY);
 
 			primaryCategories = streamClient.getDirectories().get(0).getSources().getPrimaryCategories();
 			pagedView.setAdapter(new CategorySwipeAdapter(primaryCategories));
-			mPageIndicatorOther.setDotCount(primaryCategories.size());
+			pageIndicator.setDotCount(primaryCategories.size());
 
 			setActivePage(pagedView.getCurrentPage());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			mediaPlayer = new MediaPlayer();
+			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		} catch (Exception e) {
+			Log.e(TAG, "An error occurred while initializing the player.", e);
+			showDialog("Error", "An error occurred while initializing the player.", "Exit", new OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					PlayerActivity.this.finish();
+				}
+			});
 		}
 	}
 
 	private void setActivePage(int page) {
-		mPageIndicatorOther.setActiveDot(page);
+		pageIndicator.setActiveDot(page);
 	}
 
-	private void playStream(String streamUrl, ImageView image) throws IllegalArgumentException, IllegalStateException, IOException {
-		MediaPlayer mediaPlayer = new MediaPlayer();
-		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+	synchronized private void playStream(String streamUrl, ImageView image) throws IllegalArgumentException, IllegalStateException, IOException {
+		if (mediaPlayerPlaying) {
+			stopStream();
+		}
+		
 		mediaPlayer.setDataSource(streamUrl);
-		mediaPlayer.prepare(); // might take long! (for buffering, etc)
+		mediaPlayer.prepare(); 
 		mediaPlayer.start();
+		
 		image.setImageResource(R.drawable.ic_stop);
+	}
+	
+	private void stopStream() {
+		mediaPlayer.stop();
+		mediaPlayer.reset();
+		mediaPlayerPlaying = false;
+	}
+
+	private void showDialog(String title, String message, CharSequence buttonLabel, DialogInterface.OnClickListener clickListener) {
+		new AlertDialog.Builder(PlayerActivity.this)
+			.setTitle(title)
+			.setMessage(message)		
+			.setPositiveButton(buttonLabel, clickListener).show();
 	}
 
 	private final OnPagedViewChangeListener mOnPagedViewChangedListener = new OnPagedViewChangeListener() {
@@ -157,11 +193,23 @@ public class PlayerActivity extends GDActivity {
 					adapters.put(position, new StreamDescriptionArrayAdapter(PlayerActivity.this, R.layout.list_item, streams));
 
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Log.e(TAG, "The server returned invalid data.", e);
+					showDialog("Error", "The server returned invalid data.", "Exit", new OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							PlayerActivity.this.finish();
+						}
+					});
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Log.e(TAG, "Unable to access station data from server.", e);
+					showDialog("Error", "Unable to access station data from server.", "Exit", new OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							PlayerActivity.this.finish();
+						}
+					});
 				}
 			}
 
@@ -182,8 +230,15 @@ public class PlayerActivity extends GDActivity {
 				image.setImageResource(R.drawable.ic_wait);
 				playStream(stream.getStreamUrl(), image);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.e(TAG, "The server returned invalid data.", e);
+				//TODO: allow retry here.
+				showDialog("Error", "Unable to access station.", "Exit", new OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						PlayerActivity.this.finish();
+					}
+				});
 			}
 		}
 

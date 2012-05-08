@@ -16,6 +16,12 @@ import com.abk.rrp.model.RestClient.ResponseDeserializer;
 import com.abk.rrp.model.RestClient.URLBuilder;
 import com.abk.rrp.model.StreamSourceDirectory.SourceProtocol;
 
+/**
+ * Entity representing actual directory of stream metadata.
+ * 
+ * @author kgilmer
+ *
+ */
 public class StreamSource {		
 	/**
 	 * Default HTTP connection timeout.
@@ -36,6 +42,12 @@ public class StreamSource {
 	private final URLBuilder childCategoryUrl;
 	private final URLBuilder stationUrl;
 	
+	/**
+	 * @param baseUrl root url in common of all REST calls.
+	 * @param label name of stream source
+	 * @param protocol protocol of stream source
+	 * @param apiKey api key used in calling server
+	 */
 	public StreamSource(String baseUrl, String label, SourceProtocol protocol, String apiKey) {
 		super();
 
@@ -54,18 +66,32 @@ public class StreamSource {
 		this.protocol = protocol;
 	}
 	
+	/**
+	 * @return base URL
+	 */
 	public String getBaseUrl() {
 		return baseUrl.toString();
 	}
 	
+	/**
+	 * @return name of stream source
+	 */
 	public String getLabel() {
 		return label;
 	}
 	
+	/**
+	 * @return protocol of stream source
+	 */
 	public SourceProtocol getProtocol() {
 		return protocol;
 	}
 	
+	/**
+	 * @return global list of categories
+	 * @throws IOException
+	 * @throws JSONException
+	 */
 	public List<StreamCategory> getAllCategories() throws IOException, JSONException {
 		List<StreamCategory> rl = new ArrayList<StreamCategory>();
 		
@@ -79,6 +105,11 @@ public class StreamSource {
 		return rl;
 	}
 	
+	/**
+	 * @return top-level categories
+	 * @throws IOException
+	 * @throws JSONException
+	 */
 	public List<StreamCategory> getPrimaryCategories() throws IOException, JSONException {
 		List<StreamCategory> rl = new ArrayList<StreamCategory>();
 		
@@ -92,6 +123,13 @@ public class StreamSource {
 		return rl;
 	}
 	
+	/**
+	 * 
+	 * @param parentId
+	 * @return child categories of specified top-level category.
+	 * @throws IOException
+	 * @throws JSONException
+	 */
 	public List<StreamCategory> getChildCategories(String parentId) throws IOException, JSONException {
 		List<StreamCategory> rl = new ArrayList<StreamCategory>();
 		
@@ -105,6 +143,13 @@ public class StreamSource {
 		return rl;
 	}
 	
+	/**
+	 * 
+	 * @param categoryId
+	 * @return List of streams for a given category.
+	 * @throws JSONException
+	 * @throws IOException
+	 */
 	public List<StreamDescription> getStreams(String categoryId) throws JSONException, IOException {
 		List<StreamDescription> rl = new ArrayList<StreamDescription>();
 		
@@ -120,11 +165,19 @@ public class StreamSource {
 		return rl;
 	}
 	
+	/**
+	 * @param response
+	 * @return true if given JSON message is an error response.
+	 */
 	private boolean isErrorResponse(JSONArray response) {
 		//TODO: Cleaner way of determining error condition.
 		return response.toString().contains("errormsg");
 	}
 
+	/**
+	 * @param bitrateString
+	 * @return bitrate as integer or NO_BITRATE_DEFINED_VALUE if undefined or unparsable.
+	 */
 	private int parseBitrateField(String bitrateString) {
 		//Assumes in field is "<nnn> kbs" ex: "128 kbps"
 		try {
@@ -198,6 +251,10 @@ public class StreamSource {
 		}
 	}
 	
+	/**
+	 * Deserialize a server response into a JSON array.
+	 *
+	 */
 	private static class JSONArrayDeserializer implements ResponseDeserializer<JSONArray> {
 		@Override
 		public JSONArray deserialize(InputStream input, int responseCode, Map<String, List<String>> headers) throws IOException {
