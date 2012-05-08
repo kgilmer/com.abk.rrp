@@ -7,62 +7,56 @@ import junit.framework.TestCase;
 
 import org.json.JSONException;
 
+import com.abk.rrp.model.IStreamSource;
 import com.abk.rrp.model.StreamCategory;
 import com.abk.rrp.model.StreamDescription;
 import com.abk.rrp.model.StreamDirectoryClient;
-import com.abk.rrp.model.StreamSource;
-import com.abk.rrp.model.StreamSourceDirectory;
-import com.abk.rrp.model.StreamSourceDirectory.SourceProtocol;
 
 public class DirbleTests extends TestCase {
 
 	private final static String API_KEY = "8371fe0078a1f16f35168a08fab7bfb670b5eb5d";
 	
 	public void testCreateClient() {
-		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY);
+		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY, null);
 		
-		List<StreamSourceDirectory> dirs = client.getDirectories();
+		List<IStreamSource> dirs = client.getDirectories();
 		
 		assertNotNull(dirs);
 		assertTrue(dirs.size() > 0);
 	}
 	
 	public void testGetDirbleSource() {
-		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY);
+		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY, null);
 		
-		List<StreamSourceDirectory> dirs = client.getDirectories();
+		List<IStreamSource> dirs = client.getDirectories();
 		
 		assertNotNull(dirs);
 		assertTrue(dirs.size() > 0);
 		
-		StreamSourceDirectory dirbleDirectory = dirs.get(0);
-		StreamSource sources = dirbleDirectory.getSources();
-		
+		IStreamSource sources = dirs.get(0);
+				
 		assertNotNull(sources);
 		
-		assertNotNull(sources.getBaseUrl());
 		assertNotNull(sources.getLabel());
-		assertNotNull(sources.getProtocol());
-		assertTrue(sources.getProtocol() == SourceProtocol.DIRBLE);
+		
 	}
 	
 	public void testGetAllCategoriesFromDirbleSource() throws IOException, JSONException {
-		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY);
+		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY, null);
 		
-		List<StreamSourceDirectory> dirs = client.getDirectories();
+		List<IStreamSource> dirs = client.getDirectories();
 		
 		assertNotNull(dirs);
 		assertTrue(dirs.size() > 0);
 		
-		StreamSourceDirectory dirbleDirectory = dirs.get(0);
-		StreamSource sources = dirbleDirectory.getSources();
+		IStreamSource sources = dirs.get(0);
 		
 		assertNotNull(sources);
 		
-		assertNotNull(sources.getBaseUrl());
+		
 		assertNotNull(sources.getLabel());
-		assertNotNull(sources.getProtocol());
-		assertTrue(sources.getProtocol() == SourceProtocol.DIRBLE);
+		
+		
 		
 		List<StreamCategory> allCategories = sources.getAllCategories();
 		assertNotNull(allCategories);
@@ -70,52 +64,44 @@ public class DirbleTests extends TestCase {
 	}
 	
 	public void testGetPrimaryCategoriesFromDirbleSource() throws IOException, JSONException {
-		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY);
+		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY, null);
 		
-		List<StreamSourceDirectory> dirs = client.getDirectories();
+		List<IStreamSource> dirs = client.getDirectories();
 		
 		assertNotNull(dirs);
 		assertTrue(dirs.size() > 0);
 		
-		StreamSourceDirectory dirbleDirectory = dirs.get(0);
-		StreamSource sources = dirbleDirectory.getSources();
+		IStreamSource sources = dirs.get(0);
 		
 		assertNotNull(sources);
 		
-		assertNotNull(sources.getBaseUrl());
 		assertNotNull(sources.getLabel());
-		assertNotNull(sources.getProtocol());
-		assertTrue(sources.getProtocol() == SourceProtocol.DIRBLE);
-		
+	
 		List<StreamCategory> primaryCategories = sources.getPrimaryCategories();
 		assertNotNull(primaryCategories);
 		assertTrue(primaryCategories.size() > 0);
 	}
 	
 	public void testGetChildCategoriesFromDirbleSource() throws IOException, JSONException {
-		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY);
+		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY, null);
 		
-		List<StreamSourceDirectory> dirs = client.getDirectories();
-		
-		assertNotNull(dirs);
-		assertTrue(dirs.size() > 0);
-		
-		StreamSourceDirectory dirbleDirectory = dirs.get(0);
-		StreamSource sources = dirbleDirectory.getSources();
+		List<IStreamSource> sources = client.getDirectories();
 		
 		assertNotNull(sources);
+		assertTrue(sources.size() > 0);
 		
-		assertNotNull(sources.getBaseUrl());
-		assertNotNull(sources.getLabel());
-		assertNotNull(sources.getProtocol());
-		assertTrue(sources.getProtocol() == SourceProtocol.DIRBLE);
+		IStreamSource dirbleDirectory = sources.get(0);
 		
-		List<StreamCategory> primaryCategories = sources.getPrimaryCategories();
+		assertNotNull(dirbleDirectory);
+		
+		assertNotNull(dirbleDirectory.getLabel());
+		
+		List<StreamCategory> primaryCategories = sources.get(0).getPrimaryCategories();
 		assertNotNull(primaryCategories);
 		assertTrue(primaryCategories.size() > 0);
 		
 		for (StreamCategory pc : primaryCategories) {
-			List<StreamCategory> childCategories = sources.getChildCategories(pc.getId());
+			List<StreamCategory> childCategories = sources.get(0).getChildCategories(pc.getId());
 			
 			assertNotNull(childCategories);
 			assertTrue(childCategories.size() > 0);
@@ -123,22 +109,18 @@ public class DirbleTests extends TestCase {
 	}
 	
 	public void testGetStreamsFromDirbleSource() throws IOException, JSONException {
-		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY);
+		StreamDirectoryClient client = new StreamDirectoryClient(API_KEY, null);
 		
-		List<StreamSourceDirectory> dirs = client.getDirectories();
+		List<IStreamSource> dirs = client.getDirectories();
 		
 		assertNotNull(dirs);
 		assertTrue(dirs.size() > 0);
 		
-		StreamSourceDirectory dirbleDirectory = dirs.get(0);
-		StreamSource sources = dirbleDirectory.getSources();
+		IStreamSource sources = dirs.get(0);
 		
 		assertNotNull(sources);
 		
-		assertNotNull(sources.getBaseUrl());
 		assertNotNull(sources.getLabel());
-		assertNotNull(sources.getProtocol());
-		assertTrue(sources.getProtocol() == SourceProtocol.DIRBLE);
 		
 		List<StreamCategory> primaryCategories = sources.getPrimaryCategories();
 		assertNotNull(primaryCategories);

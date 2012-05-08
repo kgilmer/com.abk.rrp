@@ -60,6 +60,7 @@ import com.abk.rrp.model.StreamDirectoryClient;
 public class PlayerActivity extends GDActivity {
 	private final static String TAG = PlayerActivity.class.getPackage().getName();
 	private final static String API_KEY = "8371fe0078a1f16f35168a08fab7bfb670b5eb5d";
+	public final static String PREF_ROOT_NAME = TAG;
 
 	private PageIndicator pageIndicator;
 
@@ -82,9 +83,9 @@ public class PlayerActivity extends GDActivity {
 		try {
 			pageIndicator = (PageIndicator) findViewById(R.id.page_indicator_other);
 
-			streamClient = new StreamDirectoryClient(API_KEY);
+			streamClient = new StreamDirectoryClient(API_KEY, getSharedPreferences(PREF_ROOT_NAME, MODE_PRIVATE));
 
-			primaryCategories = streamClient.getDirectories().get(0).getSources().getPrimaryCategories();
+			primaryCategories = streamClient.getDirectories().get(0).getPrimaryCategories();
 			pagedView.setAdapter(new CategorySwipeAdapter(primaryCategories));
 			pageIndicator.setDotCount(primaryCategories.size());
 

@@ -11,10 +11,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import com.abk.rrp.model.RestClient.HttpGETCache;
 import com.abk.rrp.model.RestClient.Response;
 import com.abk.rrp.model.RestClient.ResponseDeserializer;
 import com.abk.rrp.model.RestClient.URLBuilder;
-import com.abk.rrp.model.StreamSourceDirectory.SourceProtocol;
 
 /**
  * Entity representing actual directory of stream metadata.
@@ -22,7 +22,7 @@ import com.abk.rrp.model.StreamSourceDirectory.SourceProtocol;
  * @author kgilmer
  *
  */
-public class StreamSource {		
+public class DirbleStreamSource implements IStreamSource {		
 	/**
 	 * Default HTTP connection timeout.
 	 */
@@ -34,7 +34,7 @@ public class StreamSource {
 
 	private final URLBuilder baseUrl;
 	private final String label;
-	private final SourceProtocol protocol;
+	
 	private final RestClient restClient;
 
 	private final URLBuilder allCategoryUrl;
@@ -48,13 +48,14 @@ public class StreamSource {
 	 * @param protocol protocol of stream source
 	 * @param apiKey api key used in calling server
 	 */
-	public StreamSource(String baseUrl, String label, SourceProtocol protocol, String apiKey) {
+	public DirbleStreamSource(String baseUrl, String label, String apiKey, HttpGETCache cache) {
 		super();
 
 		this.restClient = new RestClient();
 		restClient.addConnectionInitializer(
 				new RestClient.TimeoutConnectionInitializer(DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT));
 		restClient.setErrorHandler(RestClient.THROW_ALL_ERRORS);
+		restClient.setCache(cache);
 		
 		this.baseUrl = restClient.buildURL(baseUrl);
 		this.allCategoryUrl = this.baseUrl.copy("categories", apiKey);
@@ -63,7 +64,6 @@ public class StreamSource {
 		this.stationUrl = this.baseUrl.copy("stations", apiKey);
 		
 		this.label = label;
-		this.protocol = protocol;
 	}
 	
 	/**
@@ -73,25 +73,18 @@ public class StreamSource {
 		return baseUrl.toString();
 	}
 	
-	/**
-	 * @return name of stream source
+	/* (non-Javadoc)
+	 * @see com.abk.rrp.model.IStreamSource#getLabel()
 	 */
+	@Override
 	public String getLabel() {
 		return label;
-	}
+	}	
 	
-	/**
-	 * @return protocol of stream source
+	/* (non-Javadoc)
+	 * @see com.abk.rrp.model.IStreamSource#getAllCategories()
 	 */
-	public SourceProtocol getProtocol() {
-		return protocol;
-	}
-	
-	/**
-	 * @return global list of categories
-	 * @throws IOException
-	 * @throws JSONException
-	 */
+	@Override
 	public List<StreamCategory> getAllCategories() throws IOException, JSONException {
 		List<StreamCategory> rl = new ArrayList<StreamCategory>();
 		
@@ -105,11 +98,10 @@ public class StreamSource {
 		return rl;
 	}
 	
-	/**
-	 * @return top-level categories
-	 * @throws IOException
-	 * @throws JSONException
+	/* (non-Javadoc)
+	 * @see com.abk.rrp.model.IStreamSource#getPrimaryCategories()
 	 */
+	@Override
 	public List<StreamCategory> getPrimaryCategories() throws IOException, JSONException {
 		List<StreamCategory> rl = new ArrayList<StreamCategory>();
 		
@@ -123,13 +115,10 @@ public class StreamSource {
 		return rl;
 	}
 	
-	/**
-	 * 
-	 * @param parentId
-	 * @return child categories of specified top-level category.
-	 * @throws IOException
-	 * @throws JSONException
+	/* (non-Javadoc)
+	 * @see com.abk.rrp.model.IStreamSource#getChildCategories(java.lang.String)
 	 */
+	@Override
 	public List<StreamCategory> getChildCategories(String parentId) throws IOException, JSONException {
 		List<StreamCategory> rl = new ArrayList<StreamCategory>();
 		
@@ -143,13 +132,10 @@ public class StreamSource {
 		return rl;
 	}
 	
-	/**
-	 * 
-	 * @param categoryId
-	 * @return List of streams for a given category.
-	 * @throws JSONException
-	 * @throws IOException
+	/* (non-Javadoc)
+	 * @see com.abk.rrp.model.IStreamSource#getStreams(java.lang.String)
 	 */
+	@Override
 	public List<StreamDescription> getStreams(String categoryId) throws JSONException, IOException {
 		List<StreamDescription> rl = new ArrayList<StreamDescription>();
 		

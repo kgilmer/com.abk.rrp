@@ -16,7 +16,7 @@ public class StreamCategory {
 	private final String id;
 	private final String name;
 	private final String description;
-	private final StreamSource source;
+	private final IStreamSource source;
 	
 	/**
 	 * @param id of stream
@@ -24,7 +24,7 @@ public class StreamCategory {
 	 * @param description of stream
 	 * @param source StreamSource
 	 */
-	public StreamCategory(String id, String name, String description, StreamSource source) {
+	public StreamCategory(String id, String name, String description, IStreamSource source) {
 		super();
 		this.id = id;
 		this.name = name;
