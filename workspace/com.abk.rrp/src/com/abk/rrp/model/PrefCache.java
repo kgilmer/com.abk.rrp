@@ -1,10 +1,19 @@
 package com.abk.rrp.model;
 
+import java.util.List;
+import java.util.Map;
+
 import android.content.SharedPreferences;
 
 import com.abk.rrp.model.RestClient.HttpGETCache;
 import com.abk.rrp.model.RestClient.HttpGETCacheEntry;
 
+/**
+ * A GET cache implementation that is backed by Android SharedPreferences storage.
+ * 
+ * @author kgilmer
+ *
+ */
 public class PrefCache implements HttpGETCache {
 
 	private final SharedPreferences prefs;
@@ -14,15 +23,36 @@ public class PrefCache implements HttpGETCache {
 	}
 
 	@Override
-	public HttpGETCacheEntry get(String key) {
-		// TODO Auto-generated method stub
-		return null;
+	public HttpGETCacheEntry get(final String key) {
+		if (prefs == null || !prefs.contains(key) || prefs.getString(key, "").length() == 0)
+			return null;
+		
+		return new HttpGETCacheEntry() {
+			
+			@Override
+			public int getResponseCode() {				
+				return 200;
+			}
+			
+			@Override
+			public Map<String, List<String>> getHeaders() {				
+				return null;
+			}
+			
+			@Override
+			public byte[] getContent() {				
+				return prefs.getString(key, null).getBytes();
+			}
+		}; 
 	}
 
 	@Override
 	public void put(String key, HttpGETCacheEntry entry) {
-		// TODO Auto-generated method stub
-
+		if (prefs == null)
+			return;
+		
+		//TODO: This may not work for unicode values, needs testing.
+		prefs.edit().putString(key, new String(entry.getContent()));
 	}
 
 }
