@@ -20,12 +20,27 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:greendroid="http://schemas.android.com/apk/res/com.abk.rrp" >
 
+    <FrameLayout 
+        android:id="@+id/root_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" 
+        >
     <greendroid.widget.PagedView
         android:id="@+id/paged_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" >
        
     </greendroid.widget.PagedView>
+
+    <com.abk.rrp.VerticalTextView
+        android:id="@+id/category_label"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearanceLarge"
+        android:textSize="64dp"
+        android:textColor="@color/translucent_white"
+        android:layout_gravity="center_vertical|center_horizontal"></com.abk.rrp.VerticalTextView>
+    </FrameLayout>
    
     <greendroid.widget.PageIndicator
         android:id="@+id/page_indicator_other"
