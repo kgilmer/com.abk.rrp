@@ -18,6 +18,7 @@ package com.abk.rrp;
 import greendroid.app.GDActivity;
 import greendroid.widget.ActionBarItem;
 import greendroid.widget.ActionBarItem.Type;
+import greendroid.widget.LoaderActionBarItem;
 import greendroid.widget.PageIndicator;
 import greendroid.widget.PagedAdapter;
 import greendroid.widget.PagedView;
@@ -34,6 +35,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
@@ -45,7 +47,6 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -73,6 +74,8 @@ public class PlayerActivity extends GDActivity {
 	private List<StreamCategory> primaryCategories;
 	private MediaPlayer mediaPlayer;
 	private boolean mediaPlayerPlaying = false;
+	private ActionBarItem settingsActionbarItem;
+	private LoaderActionBarItem refreshActionbarItem;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -81,8 +84,8 @@ public class PlayerActivity extends GDActivity {
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setActionBarContentView(R.layout.paged_view);
-		addActionBarItem(Type.Settings, R.id.action_bar_settings);
-		addActionBarItem(Type.Refresh, R.id.action_bar_settings);
+		settingsActionbarItem = addActionBarItem(Type.Settings, R.id.action_bar_settings);
+		refreshActionbarItem = (LoaderActionBarItem) addActionBarItem(Type.Refresh, R.id.action_bar_refresh);
 
 		final PagedView pagedView = (PagedView) findViewById(R.id.paged_view);
 		pagedView.setOnPageChangeListener(mOnPagedViewChangedListener);
@@ -103,6 +106,8 @@ public class PlayerActivity extends GDActivity {
 			pageIndicator.setDotCount(primaryCategories.size());
 
 			setActivePage(pagedView.getCurrentPage());
+
+			pagedView.scrollToPage(primaryCategories.size() / 2);
 
 			mediaPlayer = new MediaPlayer();
 			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -127,11 +132,13 @@ public class PlayerActivity extends GDActivity {
 			System.out.println("settings");
 			return true;
 		case R.id.action_bar_refresh:
-			System.out.println("refresh");
+			streamClient.clearCache();
+			new LoadCategoriesTask().execute(streamClient);			
+			return true;
+		default:
+			System.out.println("item: " + item.toString() + " pos: " + position);
 			return true;
 		}
-
-		return false;
 	}
 
 	private void setActivePage(int page) {
@@ -139,7 +146,7 @@ public class PlayerActivity extends GDActivity {
 
 	}
 
-	synchronized private void playStream(String streamUrl, ImageView image) throws IllegalArgumentException, IllegalStateException, IOException {
+	synchronized private void playStream(String streamUrl) throws IllegalArgumentException, IllegalStateException, IOException {
 		if (mediaPlayerPlaying) {
 			stopStream();
 		}
@@ -148,8 +155,6 @@ public class PlayerActivity extends GDActivity {
 		mediaPlayer.prepare();
 		mediaPlayer.start();
 		mediaPlayerPlaying = true;
-
-		image.setImageResource(R.drawable.ic_stop);
 	}
 
 	private void stopStream() {
@@ -177,6 +182,7 @@ public class PlayerActivity extends GDActivity {
 			setActivePage(newPage);
 		}
 	};
+	public TextView playingStreamTitle;
 
 	private class CategorySwipeAdapter extends PagedAdapter {
 
@@ -204,7 +210,7 @@ public class PlayerActivity extends GDActivity {
 		}
 
 		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {		
+		public View getView(int position, View convertView, ViewGroup parent) {
 			VerticalTextView categoryTextSwitcher = (VerticalTextView) findViewById(R.id.category_label);
 			categoryTextSwitcher.setText(primaryCategories.get(position).getName());
 
@@ -258,9 +264,15 @@ public class PlayerActivity extends GDActivity {
 			StreamDescription stream = (StreamDescription) parent.getItemAtPosition(position);
 
 			try {
-				ImageView image = (ImageView) view.findViewById(R.id.list_item_action_image);
-				image.setImageResource(R.drawable.ic_wait);
-				playStream(stream.getStreamUrl(), image);
+				if (playingStreamTitle != null) {
+					playingStreamTitle.setTypeface(null, Typeface.NORMAL);
+					playingStreamTitle = null;
+				}
+
+				playingStreamTitle = (TextView) view.findViewById(R.id.list_item_title);
+				playingStreamTitle.setTypeface(null, Typeface.BOLD);
+
+				playStream(stream.getStreamUrl());
 			} catch (IOException e) {
 				Log.e(TAG, "The server returned invalid data.", e);
 				// TODO: allow retry here.
@@ -308,9 +320,10 @@ public class PlayerActivity extends GDActivity {
 				vi = getLayoutInflater().inflate(R.layout.list_item, null);
 
 			TextView text = (TextView) vi.findViewById(R.id.list_item_title);
-			ImageView image = (ImageView) vi.findViewById(R.id.list_item_action_image);
+			// ImageView image = (ImageView)
+			// vi.findViewById(R.id.list_item_action_image);
 			text.setText(streamDescs.get(position).getName());
-			image.setImageResource(R.drawable.ic_play);
+			// image.setImageResource(R.drawable.ic_play);
 			// imageLoader.DisplayImage(data[position], image);
 			return vi;
 		}
@@ -320,7 +333,7 @@ public class PlayerActivity extends GDActivity {
 	 * @author kgilmer
 	 * 
 	 */
-	private static class LoadCategoriesTask extends AsyncTask<StreamDirectoryClient, Integer, Void> {
+	private class LoadCategoriesTask extends AsyncTask<StreamDirectoryClient, Integer, Void> {
 
 		@Override
 		protected Void doInBackground(StreamDirectoryClient... params) {
@@ -339,9 +352,15 @@ public class PlayerActivity extends GDActivity {
 				} catch (Exception e) {
 					Log.e(TAG, "An error occurred while loading station data.", e);
 				}
-			}
+			}						
 
 			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			if (refreshActionbarItem != null)
+				refreshActionbarItem.setLoading(false);
 		}
 
 	}

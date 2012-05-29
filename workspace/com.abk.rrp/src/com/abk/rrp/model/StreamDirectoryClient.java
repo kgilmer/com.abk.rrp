@@ -20,6 +20,7 @@ public class StreamDirectoryClient {
 	private final String apiKey;
 	private final SharedPreferences prefs;
 	private final List<IStreamSource> directories;
+	private final PrefCache prefCache;
 		
 	/**
 	 * @param dirbleApiKey
@@ -28,11 +29,11 @@ public class StreamDirectoryClient {
 		super();
 		this.apiKey = dirbleApiKey;
 		this.prefs = prefs;
-		
+		this.prefCache = new PrefCache(prefs);
 		//Currently hardcoded to return a single directory: dirble.com.  To add directories, add to this list.
 		this.directories = Arrays.asList(
 				new IStreamSource [] 
-						{new DirbleStreamSource(DIRIBLE_URL, "dirble.com", apiKey, new PrefCache(prefs))});
+						{new DirbleStreamSource(DIRIBLE_URL, "dirble.com", apiKey, prefCache)});
 	}
 	
 	/**
@@ -53,5 +54,12 @@ public class StreamDirectoryClient {
 				category.getStreams();
 			}
 		}
+	}
+	
+	/**
+	 * Clear all entries.
+	 */
+	public void clearCache() {
+		prefs.edit().clear().commit();
 	}
 }

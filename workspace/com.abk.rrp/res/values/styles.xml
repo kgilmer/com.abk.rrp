@@ -25,6 +25,5 @@
     
     <style name="TextAppearanceLarge" parent="@style/TextAppearance.Large">
         <item name="android:textSize">18sp</item>
-    </style>
-    
+    </style>            
 </resources>
