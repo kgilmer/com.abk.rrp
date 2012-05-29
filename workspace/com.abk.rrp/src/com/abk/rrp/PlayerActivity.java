@@ -16,6 +16,8 @@
 package com.abk.rrp;
 
 import greendroid.app.GDActivity;
+import greendroid.widget.ActionBarItem;
+import greendroid.widget.ActionBarItem.Type;
 import greendroid.widget.PageIndicator;
 import greendroid.widget.PagedAdapter;
 import greendroid.widget.PagedView;
@@ -34,6 +36,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -47,6 +50,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.abk.rrp.model.IStreamSource;
 import com.abk.rrp.model.StreamCategory;
 import com.abk.rrp.model.StreamDescription;
 import com.abk.rrp.model.StreamDirectoryClient;
@@ -72,11 +76,14 @@ public class PlayerActivity extends GDActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+
 		super.onCreate(savedInstanceState);
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setActionBarContentView(R.layout.paged_view);
-
+		addActionBarItem(Type.Settings, R.id.action_bar_settings);
+		addActionBarItem(Type.Refresh, R.id.action_bar_settings);
+		
 		final PagedView pagedView = (PagedView) findViewById(R.id.paged_view);
 		pagedView.setOnPageChangeListener(mOnPagedViewChangedListener);
 		
@@ -84,12 +91,16 @@ public class PlayerActivity extends GDActivity {
 			pageIndicator = (PageIndicator) findViewById(R.id.page_indicator_other);
 
 			streamClient = new StreamDirectoryClient(API_KEY, getSharedPreferences(PREF_ROOT_NAME, MODE_PRIVATE));
+			
+			//TODO: need to call fillCache in a background thread and show modal "loading..." dialog on first app load.
+			new LoadCategoriesTask().execute(streamClient);
+			//TODO: need to add to action bar: "Reload station data" which should delete pref data and fillcache().
 
 			primaryCategories = streamClient.getDirectories().get(0).getPrimaryCategories();
 			pagedView.setAdapter(new CategorySwipeAdapter(primaryCategories));
 			pageIndicator.setDotCount(primaryCategories.size());
 
-			setActivePage(pagedView.getCurrentPage());
+			setActivePage(pagedView.getCurrentPage());			
 			
 			mediaPlayer = new MediaPlayer();
 			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -99,10 +110,25 @@ public class PlayerActivity extends GDActivity {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					PlayerActivity.this.finish();
+					//PlayerActivity.this.finish();
 				}
 			});
-		}
+		}				
+	}
+	
+	@Override
+    public boolean onHandleActionBarItemClick(ActionBarItem item, int position) {
+
+        switch (item.getItemId()) {
+            case R.id.action_bar_settings:
+            	System.out.println("settings");
+            	return true;
+            case R.id.action_bar_refresh:
+            	System.out.println("refresh");
+            	return true;
+        }
+        
+        return false;
 	}
 
 	private void setActivePage(int page) {
@@ -117,6 +143,7 @@ public class PlayerActivity extends GDActivity {
 		mediaPlayer.setDataSource(streamUrl);
 		mediaPlayer.prepare(); 
 		mediaPlayer.start();
+		mediaPlayerPlaying = true;
 		
 		image.setImageResource(R.drawable.ic_stop);
 	}
@@ -283,5 +310,35 @@ public class PlayerActivity extends GDActivity {
 			// imageLoader.DisplayImage(data[position], image);
 			return vi;
 		}
+	}
+	
+	/**
+	 * @author kgilmer
+	 *
+	 */
+	private static class LoadCategoriesTask extends AsyncTask<StreamDirectoryClient, Integer, Void> {
+
+		@Override
+		protected Void doInBackground(StreamDirectoryClient... params) {
+			StreamDirectoryClient client = params[0];
+			
+			List<IStreamSource> directories = client.getDirectories();
+			int count = directories.size();
+			int index = 1;
+			for (IStreamSource source : directories) {
+				try {
+					for (StreamCategory category : source.getPrimaryCategories()) {
+						category.getStreams();
+					}
+					publishProgress((int) ((index / (float) count) * 100));
+					index++;
+				} catch (Exception e) {
+					Log.e(TAG, "An error occurred while loading station data.", e);
+				} 		
+			}
+			
+			return null;
+		}
+		
 	}
 }

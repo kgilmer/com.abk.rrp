@@ -1,0 +1,6 @@
+<resources>
+
+    <item name="action_bar_settings" type="id"/>
+    <item name="action_bar_refresh" type="id"/>
+    
+</resources>
