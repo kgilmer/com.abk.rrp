@@ -3,5 +3,6 @@
 
     <string name="hello">Hello World, PlayerActivity!</string>
     <string name="app_name">Red Radio Player</string>
+    <string name="stop_stream">Stop Stream</string>
 
 </resources>

@@ -16,9 +16,11 @@
 package com.abk.rrp;
 
 import greendroid.app.GDActivity;
+import greendroid.widget.ActionBar;
 import greendroid.widget.ActionBarItem;
 import greendroid.widget.ActionBarItem.Type;
 import greendroid.widget.LoaderActionBarItem;
+import greendroid.widget.NormalActionBarItem;
 import greendroid.widget.PageIndicator;
 import greendroid.widget.PagedAdapter;
 import greendroid.widget.PagedView;
@@ -35,6 +37,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -73,9 +77,15 @@ public class PlayerActivity extends GDActivity {
 
 	private List<StreamCategory> primaryCategories;
 	private MediaPlayer mediaPlayer;
-	private boolean mediaPlayerPlaying = false;
-	private ActionBarItem settingsActionbarItem;
+	private StreamDescription currentStream;
+	private ColorStateList defaultColors;
+	
+	//private ActionBarItem settingsActionbarItem;
 	private LoaderActionBarItem refreshActionbarItem;
+	
+	public PlayerActivity() {
+		super(ActionBar.Type.Empty);
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +94,11 @@ public class PlayerActivity extends GDActivity {
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setActionBarContentView(R.layout.paged_view);
-		settingsActionbarItem = addActionBarItem(Type.Settings, R.id.action_bar_settings);
+		//settingsActionbarItem = addActionBarItem(Type.Settings, R.id.action_bar_settings);		
+		addActionBarItem(getActionBar()
+                .newActionBarItem(NormalActionBarItem.class)
+                .setDrawable(R.drawable.ic_stop)
+                .setContentDescription(R.string.stop_stream), R.id.action_bar_stop);
 		refreshActionbarItem = (LoaderActionBarItem) addActionBarItem(Type.Refresh, R.id.action_bar_refresh);
 
 		final PagedView pagedView = (PagedView) findViewById(R.id.paged_view);
@@ -122,7 +136,7 @@ public class PlayerActivity extends GDActivity {
 				}
 			});
 		}
-	}
+	}	
 
 	@Override
 	public boolean onHandleActionBarItemClick(ActionBarItem item, int position) {
@@ -135,10 +149,14 @@ public class PlayerActivity extends GDActivity {
 			streamClient.clearCache();
 			new LoadCategoriesTask().execute(streamClient);			
 			return true;
-		default:
-			System.out.println("item: " + item.toString() + " pos: " + position);
+		case R.id.action_bar_stop:
+			stopStream();
 			return true;
+		default:
+			return super.onHandleActionBarItemClick(item, position);
 		}
+		
+		
 	}
 
 	private void setActivePage(int page) {
@@ -147,20 +165,27 @@ public class PlayerActivity extends GDActivity {
 	}
 
 	synchronized private void playStream(String streamUrl) throws IllegalArgumentException, IllegalStateException, IOException {
-		if (mediaPlayerPlaying) {
+		if (currentStream != null) {
 			stopStream();
 		}
 
 		mediaPlayer.setDataSource(streamUrl);
 		mediaPlayer.prepare();
-		mediaPlayer.start();
-		mediaPlayerPlaying = true;
+		mediaPlayer.start();	
 	}
 
 	private void stopStream() {
+		getActionBar().setTitle("Red Radio Player");
 		mediaPlayer.stop();
 		mediaPlayer.reset();
-		mediaPlayerPlaying = false;
+		currentStream = null;
+		
+		//Toggle play
+		if (playingStreamTitle != null) {
+			playingStreamTitle.setTypeface(null, Typeface.NORMAL);
+			playingStreamTitle.setTextColor(defaultColors);
+			playingStreamTitle = null;
+		}
 	}
 
 	private void showDialog(String title, String message, CharSequence buttonLabel, DialogInterface.OnClickListener clickListener) {
@@ -263,26 +288,36 @@ public class PlayerActivity extends GDActivity {
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 			StreamDescription stream = (StreamDescription) parent.getItemAtPosition(position);
 
-			try {
-				if (playingStreamTitle != null) {
-					playingStreamTitle.setTypeface(null, Typeface.NORMAL);
-					playingStreamTitle = null;
-				}
-
-				playingStreamTitle = (TextView) view.findViewById(R.id.list_item_title);
-				playingStreamTitle.setTypeface(null, Typeface.BOLD);
-
-				playStream(stream.getStreamUrl());
-			} catch (IOException e) {
-				Log.e(TAG, "The server returned invalid data.", e);
-				// TODO: allow retry here.
-				showDialog("Error", "Unable to access station.", "Exit", new OnClickListener() {
-
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						PlayerActivity.this.finish();
+			if (currentStream != null && currentStream.equals(stream)) {				
+				stopStream();
+			} else {
+				try {
+					if (playingStreamTitle != null) {
+						playingStreamTitle.setTypeface(null, Typeface.NORMAL);	
+						playingStreamTitle.setTextColor(defaultColors);
+						playingStreamTitle = null;
 					}
-				});
+	
+					playingStreamTitle = (TextView) view.findViewById(R.id.list_item_title);
+					defaultColors = playingStreamTitle.getTextColors();
+					playingStreamTitle.setTextColor(Color.RED);
+					playingStreamTitle.setTypeface(null, Typeface.BOLD);
+					
+					getActionBar().setTitle(stream.getName());
+	
+					playStream(stream.getStreamUrl());
+					currentStream = stream;
+				} catch (IOException e) {
+					Log.e(TAG, "The server returned invalid data.", e);
+					// TODO: allow retry here.
+					showDialog("Error", "Unable to access station.", "Exit", new OnClickListener() {
+	
+						@Override
+						public void onClick(DialogInterface dialog, int which) {							
+							stopStream();
+						}
+					});
+				}
 			}
 		}
 
