@@ -55,8 +55,8 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.abk.rrp.model.IStreamCategory;
 import com.abk.rrp.model.IStreamSource;
-import com.abk.rrp.model.StreamCategory;
 import com.abk.rrp.model.StreamDescription;
 import com.abk.rrp.model.StreamDirectoryClient;
 
@@ -75,7 +75,7 @@ public class PlayerActivity extends GDActivity {
 
 	private StreamDirectoryClient streamClient;
 
-	private List<StreamCategory> primaryCategories;
+	private List<IStreamCategory> primaryCategories;
 	private MediaPlayer mediaPlayer;
 	private StreamDescription currentStream;
 	private ColorStateList defaultColors;
@@ -116,6 +116,8 @@ public class PlayerActivity extends GDActivity {
 			// should delete pref data and fillcache().
 
 			primaryCategories = streamClient.getDirectories().get(0).getPrimaryCategories();
+			RecentStreams recentStreams = new RecentStreams(getSharedPreferences(PREF_ROOT_NAME, MODE_PRIVATE));
+			primaryCategories.add(primaryCategories.size() / 2, recentStreams);
 			pagedView.setAdapter(new CategorySwipeAdapter(primaryCategories));
 			pageIndicator.setDotCount(primaryCategories.size());
 
@@ -211,10 +213,10 @@ public class PlayerActivity extends GDActivity {
 
 	private class CategorySwipeAdapter extends PagedAdapter {
 
-		private final List<StreamCategory> categories;
+		private final List<IStreamCategory> categories;
 		private final Map<Integer, ListAdapter> adapters;
 
-		public CategorySwipeAdapter(List<StreamCategory> primaryCategories) {
+		public CategorySwipeAdapter(List<IStreamCategory> primaryCategories) {
 			categories = primaryCategories;
 			adapters = new HashMap<Integer, ListAdapter>();
 		}
@@ -247,7 +249,7 @@ public class PlayerActivity extends GDActivity {
 			ListView stationListView = ((ListView) convertView);
 
 			if (!adapters.containsKey(position)) {
-				StreamCategory category = (StreamCategory) getItem(position);
+				IStreamCategory category = (IStreamCategory) getItem(position);
 
 				List<StreamDescription> streams;
 				try {
@@ -379,7 +381,7 @@ public class PlayerActivity extends GDActivity {
 			int index = 1;
 			for (IStreamSource source : directories) {
 				try {
-					for (StreamCategory category : source.getPrimaryCategories()) {
+					for (IStreamCategory category : source.getPrimaryCategories()) {
 						category.getStreams();
 					}
 					publishProgress((int) ((index / (float) count) * 100));

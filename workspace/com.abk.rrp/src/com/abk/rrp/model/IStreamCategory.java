@@ -13,16 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.abk.rrp;
+package com.abk.rrp.model;
 
-import greendroid.app.GDApplication;
+import java.io.IOException;
+import java.util.List;
 
-/**
- * GreenDroid application class.
- * 
- * @author kgilmer
- *
- */
-public class RedRadioApplication extends GDApplication {
+import org.json.JSONException;
+
+public interface IStreamCategory {
+
+	/**
+	 * @return id
+	 */
+	public abstract String getId();
+
+	/**
+	 * @return name
+	 */
+	public abstract String getName();
+
+	/**
+	 * @return description
+	 */
+	public abstract String getDescription();
+
+	/**
+	 * @return List of StreamDiscription for all streams in category.
+	 * 
+	 * @throws JSONException
+	 * @throws IOException
+	 */
+	public abstract List<StreamDescription> getStreams() throws JSONException, IOException;
 
 }
