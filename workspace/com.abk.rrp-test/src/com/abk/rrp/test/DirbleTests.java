@@ -7,8 +7,8 @@ import junit.framework.TestCase;
 
 import org.json.JSONException;
 
+import com.abk.rrp.model.IStreamCategory;
 import com.abk.rrp.model.IStreamSource;
-import com.abk.rrp.model.StreamCategory;
 import com.abk.rrp.model.StreamDescription;
 import com.abk.rrp.model.StreamDirectoryClient;
 
@@ -58,7 +58,7 @@ public class DirbleTests extends TestCase {
 		
 		
 		
-		List<StreamCategory> allCategories = sources.getAllCategories();
+		List<IStreamCategory> allCategories = sources.getAllCategories();
 		assertNotNull(allCategories);
 		assertTrue(allCategories.size() > 0);
 	}
@@ -77,7 +77,7 @@ public class DirbleTests extends TestCase {
 		
 		assertNotNull(sources.getLabel());
 	
-		List<StreamCategory> primaryCategories = sources.getPrimaryCategories();
+		List<IStreamCategory> primaryCategories = sources.getPrimaryCategories();
 		assertNotNull(primaryCategories);
 		assertTrue(primaryCategories.size() > 0);
 	}
@@ -96,12 +96,12 @@ public class DirbleTests extends TestCase {
 		
 		assertNotNull(dirbleDirectory.getLabel());
 		
-		List<StreamCategory> primaryCategories = sources.get(0).getPrimaryCategories();
+		List<IStreamCategory> primaryCategories = sources.get(0).getPrimaryCategories();
 		assertNotNull(primaryCategories);
 		assertTrue(primaryCategories.size() > 0);
 		
-		for (StreamCategory pc : primaryCategories) {
-			List<StreamCategory> childCategories = sources.get(0).getChildCategories(pc.getId());
+		for (IStreamCategory pc : primaryCategories) {
+			List<IStreamCategory> childCategories = sources.get(0).getChildCategories(pc.getId());
 			
 			assertNotNull(childCategories);
 			assertTrue(childCategories.size() > 0);
@@ -122,17 +122,17 @@ public class DirbleTests extends TestCase {
 		
 		assertNotNull(sources.getLabel());
 		
-		List<StreamCategory> primaryCategories = sources.getPrimaryCategories();
+		List<IStreamCategory> primaryCategories = sources.getPrimaryCategories();
 		assertNotNull(primaryCategories);
 		assertTrue(primaryCategories.size() > 0);
 		
-		for (StreamCategory pc : primaryCategories) {
-			List<StreamCategory> childCategories = sources.getChildCategories(pc.getId());
+		for (IStreamCategory pc : primaryCategories) {
+			List<IStreamCategory> childCategories = sources.getChildCategories(pc.getId());
 			
 			assertNotNull(childCategories);
 			assertTrue(childCategories.size() > 0);
 			
-			for (StreamCategory cc : childCategories) {
+			for (IStreamCategory cc : childCategories) {
 				List<StreamDescription> stations = sources.getStreams(cc.getId());
 				
 				for (StreamDescription sd : stations) {
