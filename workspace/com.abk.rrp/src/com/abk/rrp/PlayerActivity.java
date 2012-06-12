@@ -113,13 +113,9 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 			pageIndicator = (PageIndicator) findViewById(R.id.page_indicator_other);
 
 			streamClient = new StreamDirectoryClient(API_KEY, getSharedPreferences(PREF_ROOT_NAME, MODE_PRIVATE));
-
-			// TODO: need to call fillCache in a background thread and show
-			// modal "loading..." dialog on first app load.
+		
 			new LoadCategoriesTask().execute(streamClient);
-			// TODO: need to add to action bar: "Reload station data" which
-			// should delete pref data and fillcache().
-
+			
 			primaryCategories = streamClient.getDirectories().get(0).getPrimaryCategories();
 			recentStreams = new RecentStreams(getSharedPreferences(PREF_ROOT_NAME, MODE_PRIVATE));
 			primaryCategories.add(primaryCategories.size() / 2, recentStreams);
