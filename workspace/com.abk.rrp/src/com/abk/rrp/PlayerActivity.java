@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONException;
-
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -42,6 +40,8 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnErrorListener;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -53,6 +53,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.abk.rrp.model.IStreamCategory;
@@ -66,7 +67,7 @@ import com.abk.rrp.model.StreamDirectoryClient;
  * @author kgilmer
  * 
  */
-public class PlayerActivity extends GDActivity {
+public class PlayerActivity extends GDActivity implements OnPreparedListener, OnErrorListener {
 	private final static String TAG = PlayerActivity.class.getPackage().getName();
 	private final static String API_KEY = "8371fe0078a1f16f35168a08fab7bfb670b5eb5d";
 	public final static String PREF_ROOT_NAME = TAG;
@@ -79,6 +80,8 @@ public class PlayerActivity extends GDActivity {
 	private MediaPlayer mediaPlayer;
 	private StreamDescription currentStream;
 	private ColorStateList defaultColors;
+	private TextView playingStreamTitle;
+	private ProgressBar progressBar;
 	
 	//private ActionBarItem settingsActionbarItem;
 	private LoaderActionBarItem refreshActionbarItem;
@@ -127,6 +130,9 @@ public class PlayerActivity extends GDActivity {
 
 			mediaPlayer = new MediaPlayer();
 			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+			
+			mediaPlayer.setOnPreparedListener(this);
+			mediaPlayer.setOnErrorListener(this);
 		} catch (Exception e) {
 			Log.e(TAG, "An error occurred while initializing the player.", e);
 			showDialog("Error", "An error occurred while initializing the player.", "Exit", new OnClickListener() {
@@ -156,14 +162,11 @@ public class PlayerActivity extends GDActivity {
 			return true;
 		default:
 			return super.onHandleActionBarItemClick(item, position);
-		}
-		
-		
+		}		
 	}
 
 	private void setActivePage(int page) {
 		pageIndicator.setActiveDot(page);
-
 	}
 
 	synchronized private void playStream(String streamUrl) throws IllegalArgumentException, IllegalStateException, IOException {
@@ -172,8 +175,7 @@ public class PlayerActivity extends GDActivity {
 		}
 
 		mediaPlayer.setDataSource(streamUrl);
-		mediaPlayer.prepare();
-		mediaPlayer.start();	
+		mediaPlayer.prepareAsync();		
 	}
 
 	private void stopStream() {
@@ -182,18 +184,26 @@ public class PlayerActivity extends GDActivity {
 		mediaPlayer.reset();
 		currentStream = null;
 		
-		//Toggle play
+		resetUI();
+	}
+
+	private void resetUI() {
 		if (playingStreamTitle != null) {
 			playingStreamTitle.setTypeface(null, Typeface.NORMAL);
 			playingStreamTitle.setTextColor(defaultColors);
 			playingStreamTitle = null;
+		}
+		
+		if (progressBar != null) {
+			progressBar.setVisibility(View.INVISIBLE);
+			progressBar = null;
 		}
 	}
 
 	private void showDialog(String title, String message, CharSequence buttonLabel, DialogInterface.OnClickListener clickListener) {
 		new AlertDialog.Builder(PlayerActivity.this).setTitle(title).setMessage(message).setPositiveButton(buttonLabel, clickListener).show();
 	}
-
+	
 	private final OnPagedViewChangeListener mOnPagedViewChangedListener = new OnPagedViewChangeListener() {
 
 		@Override
@@ -209,7 +219,7 @@ public class PlayerActivity extends GDActivity {
 			setActivePage(newPage);
 		}
 	};
-	public TextView playingStreamTitle;
+	
 
 	private class CategorySwipeAdapter extends PagedAdapter {
 
@@ -257,16 +267,7 @@ public class PlayerActivity extends GDActivity {
 
 					adapters.put(position, new StreamDescriptionArrayAdapter(PlayerActivity.this, R.layout.list_item, streams));
 
-				} catch (JSONException e) {
-					Log.e(TAG, "The server returned invalid data.", e);
-					showDialog("Error", "The server returned invalid data.", "Exit", new OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							PlayerActivity.this.finish();
-						}
-					});
-				} catch (IOException e) {
+				} catch (Exception e) {
 					Log.e(TAG, "Unable to access station data from server.", e);
 					showDialog("Error", "Unable to access station data from server.", "Exit", new OnClickListener() {
 
@@ -290,17 +291,19 @@ public class PlayerActivity extends GDActivity {
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 			StreamDescription stream = (StreamDescription) parent.getItemAtPosition(position);
 
-			if (currentStream != null && currentStream.equals(stream)) {				
-				stopStream();
-			} else {
-				try {
-					if (playingStreamTitle != null) {
-						playingStreamTitle.setTypeface(null, Typeface.NORMAL);	
-						playingStreamTitle.setTextColor(defaultColors);
-						playingStreamTitle = null;
+			try {
+				if (currentStream != null && currentStream.getUrl().equals(stream.getUrl())) {				
+					stopStream();
+				} else {													
+					if (currentStream != null) {
+						stopStream();
+					} else {
+						resetUI();
 					}
 	
 					playingStreamTitle = (TextView) view.findViewById(R.id.list_item_title);
+					progressBar = (ProgressBar) view.findViewById(R.id.list_item_progress);
+					progressBar.setVisibility(View.VISIBLE);					
 					defaultColors = playingStreamTitle.getTextColors();
 					playingStreamTitle.setTextColor(Color.RED);
 					playingStreamTitle.setTypeface(null, Typeface.BOLD);
@@ -309,17 +312,18 @@ public class PlayerActivity extends GDActivity {
 	
 					playStream(stream.getStreamUrl());
 					currentStream = stream;
-				} catch (IOException e) {
-					Log.e(TAG, "The server returned invalid data.", e);
-					// TODO: allow retry here.
-					showDialog("Error", "Unable to access station.", "Exit", new OnClickListener() {
-	
-						@Override
-						public void onClick(DialogInterface dialog, int which) {							
-							stopStream();
-						}
-					});
+					
 				}
+			} catch (IOException e) {
+				Log.e(TAG, "The server returned invalid data.", e);
+				// TODO: allow retry here.
+				showDialog("Error", "Unable to access station.", "Exit", new OnClickListener() {
+	
+					@Override
+					public void onClick(DialogInterface dialog, int which) {							
+						stopStream();
+					}
+				});
 			}
 		}
 
@@ -400,5 +404,28 @@ public class PlayerActivity extends GDActivity {
 				refreshActionbarItem.setLoading(false);
 		}
 
+	}
+
+	@Override
+	public void onPrepared(MediaPlayer mp) {
+		if (progressBar != null) {
+			progressBar.setVisibility(View.INVISIBLE);
+			progressBar = null;
+		}
+		
+		mediaPlayer.start();	
+	}
+
+	@Override
+	public boolean onError(MediaPlayer mp, int what, int extra) {
+		showDialog("Error", "An error occurred while trying to load the station audio.", "Ok", new OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				resetUI();
+			}
+		});
+		
+		return true;
 	}
 }

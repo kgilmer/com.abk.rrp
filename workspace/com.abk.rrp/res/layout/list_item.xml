@@ -14,6 +14,15 @@
         android:padding="10dp"
         android:textSize="16sp" >
     </TextView>
+    
+    <ProgressBar 
+        android:id="@+id/list_item_progress"
+        android:indeterminate="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|center_vertical"
+        android:indeterminateOnly="true"
+        android:visibility="invisible"/>
 
     <!-- 
     <ImageView
