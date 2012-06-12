@@ -140,9 +140,8 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 			showDialog("Error", "An error occurred while initializing the player.", "Exit", new OnClickListener() {
 
 				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					// TODO: enable following line for release.
-					// PlayerActivity.this.finish();
+				public void onClick(DialogInterface dialog, int which) {				
+					PlayerActivity.this.finish();
 				}
 			});
 		}
@@ -169,6 +168,8 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 
 	private void setActivePage(int page) {
 		pageIndicator.setActiveDot(page);
+		VerticalTextView categoryTextSwitcher = (VerticalTextView) findViewById(R.id.category_label);
+		categoryTextSwitcher.setText(primaryCategories.get(page).getName());
 	}
 
 	synchronized private void playStream(String streamUrl) throws IllegalArgumentException, IllegalStateException, IOException {
@@ -218,7 +219,7 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 
 		@Override
 		public void onPageChanged(PagedView pagedView, int previousPage, int newPage) {
-			setActivePage(newPage);
+			setActivePage(newPage);			
 		}
 	};
 	
@@ -249,10 +250,7 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 		}
 
 		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			VerticalTextView categoryTextSwitcher = (VerticalTextView) findViewById(R.id.category_label);
-			categoryTextSwitcher.setText(primaryCategories.get(position).getName());
-
+		public View getView(int position, View convertView, ViewGroup parent) {			
 			if (convertView == null) {
 				convertView = getLayoutInflater().inflate(R.layout.paged_view_item, parent, false);
 				((ListView) convertView).setOnItemClickListener(new StationSelectedListener());
