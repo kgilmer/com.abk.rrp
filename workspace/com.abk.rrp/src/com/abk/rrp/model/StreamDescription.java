@@ -135,5 +135,27 @@ public class StreamDescription {
 	public String toString() {		
 		return name;
 	}
+
+	public static StreamDescription deserialize(String streamString) {
+		String [] elems = streamString.split(",");
+		
+		return new StreamDescription(elems[0], elems[1], elems[2], Integer.parseInt(elems[3]), elems[4]);
+	}
+
+	public String serialize() {		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(id);
+		sb.append(",");
+		sb.append(name);
+		sb.append(",");
+		sb.append(url);
+		sb.append(",");
+		sb.append(bitrate);
+		sb.append(",");
+		sb.append(country);
+		
+		return sb.toString();
+	}
 	
 }

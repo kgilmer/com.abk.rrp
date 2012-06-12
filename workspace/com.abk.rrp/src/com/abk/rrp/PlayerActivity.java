@@ -85,6 +85,7 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 	
 	//private ActionBarItem settingsActionbarItem;
 	private LoaderActionBarItem refreshActionbarItem;
+	private RecentStreams recentStreams;
 	
 	public PlayerActivity() {
 		super(ActionBar.Type.Empty);
@@ -98,6 +99,7 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 
 		setActionBarContentView(R.layout.paged_view);
 		//settingsActionbarItem = addActionBarItem(Type.Settings, R.id.action_bar_settings);		
+		getActionBar().setBackgroundColor(Color.RED);
 		addActionBarItem(getActionBar()
                 .newActionBarItem(NormalActionBarItem.class)
                 .setDrawable(R.drawable.ic_stop)
@@ -119,14 +121,14 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 			// should delete pref data and fillcache().
 
 			primaryCategories = streamClient.getDirectories().get(0).getPrimaryCategories();
-			RecentStreams recentStreams = new RecentStreams(getSharedPreferences(PREF_ROOT_NAME, MODE_PRIVATE));
+			recentStreams = new RecentStreams(getSharedPreferences(PREF_ROOT_NAME, MODE_PRIVATE));
 			primaryCategories.add(primaryCategories.size() / 2, recentStreams);
 			pagedView.setAdapter(new CategorySwipeAdapter(primaryCategories));
 			pageIndicator.setDotCount(primaryCategories.size());
 
 			setActivePage(pagedView.getCurrentPage());
 
-			pagedView.scrollToPage(primaryCategories.size() / 2);
+			pagedView.scrollToPage((primaryCategories.size() / 2) - 1);
 
 			mediaPlayer = new MediaPlayer();
 			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -340,7 +342,9 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 
 		@Override
 		public int getCount() {
-
+			if (streamDescs == null)
+				return 0;
+			
 			return streamDescs.size();
 		}
 
@@ -414,6 +418,8 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 		}
 		
 		mediaPlayer.start();	
+		
+		recentStreams.addStream(currentStream);
 	}
 
 	@Override
