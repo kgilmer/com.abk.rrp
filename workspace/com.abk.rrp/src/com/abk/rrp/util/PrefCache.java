@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.abk.rrp.model;
+package com.abk.rrp.util;
 
 import java.util.List;
 import java.util.Map;
 
 import android.content.SharedPreferences;
 
-import com.abk.rrp.model.RestClient.HttpGETCache;
-import com.abk.rrp.model.RestClient.HttpGETCacheEntry;
+import com.abk.rrp.util.RestClient.HttpGETCache;
+import com.abk.rrp.util.RestClient.HttpGETCacheEntry;
+
 
 /**
  * A GET cache implementation that is backed by Android SharedPreferences storage.

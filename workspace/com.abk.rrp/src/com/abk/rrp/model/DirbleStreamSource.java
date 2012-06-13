@@ -26,10 +26,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import com.abk.rrp.model.RestClient.HttpGETCache;
-import com.abk.rrp.model.RestClient.Response;
-import com.abk.rrp.model.RestClient.ResponseDeserializer;
-import com.abk.rrp.model.RestClient.URLBuilder;
+import com.abk.rrp.util.RestClient;
+import com.abk.rrp.util.RestClient.HttpGETCache;
+import com.abk.rrp.util.RestClient.Response;
+import com.abk.rrp.util.RestClient.ResponseDeserializer;
+import com.abk.rrp.util.RestClient.URLBuilder;
 
 /**
  * Entity representing actual directory of stream metadata.

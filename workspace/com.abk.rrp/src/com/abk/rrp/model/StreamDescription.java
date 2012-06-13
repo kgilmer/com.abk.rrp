@@ -19,6 +19,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 
+import com.abk.rrp.util.RestClient;
+
 /**
  * Metadata for a specific audio stream.
  * 
