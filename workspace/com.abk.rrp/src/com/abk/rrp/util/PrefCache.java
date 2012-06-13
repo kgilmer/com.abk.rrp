@@ -44,7 +44,7 @@ public class PrefCache implements HttpGETCache {
 	@Override
 	public HttpGETCacheEntry get(final String key) {
 		if (prefs == null || !prefs.contains(key) || prefs.getString(key, "").length() == 0) {
-			System.out.println("Cache miss: " + key);
+			//System.out.println("Cache miss: " + key);
 			return null;
 		}
 		
@@ -62,7 +62,7 @@ public class PrefCache implements HttpGETCache {
 			
 			@Override
 			public byte[] getContent() {			
-				System.out.println("Cache hit: " + key);
+				//System.out.println("Cache hit: " + key);
 				return prefs.getString(key, null).getBytes();
 			}
 		}; 

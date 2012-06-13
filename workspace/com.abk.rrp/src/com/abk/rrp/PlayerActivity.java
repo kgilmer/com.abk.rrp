@@ -146,19 +146,16 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 	@Override
 	public boolean onHandleActionBarItemClick(ActionBarItem item, int position) {
 
-		switch (item.getItemId()) {
-		case R.id.action_bar_settings:
-			System.out.println("settings");
-			return true;
-		case R.id.action_bar_refresh:
-			streamClient.clearCache();
-			new LoadCategoriesTask().execute(streamClient);			
-			return true;
-		case R.id.action_bar_stop:
-			stopStream();
-			return true;
-		default:
-			return super.onHandleActionBarItemClick(item, position);
+		switch (item.getItemId()) {		
+			case R.id.action_bar_refresh:
+				streamClient.clearCache();
+				new LoadCategoriesTask().execute(streamClient);			
+				return true;
+			case R.id.action_bar_stop:
+				stopStream();
+				return true;
+			default:
+				return super.onHandleActionBarItemClick(item, position);
 		}		
 	}
 
