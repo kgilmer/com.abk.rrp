@@ -21,9 +21,9 @@ import java.util.List;
 
 import org.json.JSONException;
 
-import com.abk.rrp.util.PrefCache;
-
 import android.content.SharedPreferences;
+
+import com.abk.rrp.util.PrefCache;
 
 /**
  * Client for Stream Directories ~ central repositories for streaming audio metadata.
@@ -68,7 +68,9 @@ public class StreamDirectoryClient {
 	public void fillCache() throws IOException, JSONException {
 		for (IStreamSource source : getDirectories()) {
 			for (IStreamCategory category : source.getPrimaryCategories()) {
-				category.getStreams();
+				for (IStreamCategory cc : source.getChildCategories(category)) {
+					cc.getStreams();
+				}
 			}
 		}
 	}

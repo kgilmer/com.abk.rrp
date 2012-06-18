@@ -27,6 +27,8 @@ import greendroid.widget.PagedView;
 import greendroid.widget.PagedView.OnPagedViewChangeListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -258,7 +260,7 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 				try {
 					streams = category.getStreams();
 
-					adapters.put(position, new StreamDescriptionArrayAdapter(PlayerActivity.this, R.layout.list_item, streams));
+					adapters.put(position, new StreamDescriptionArrayAdapter(PlayerActivity.this, R.layout.list_item, flattenStreams(streams)));
 
 				} catch (Exception e) {
 					Log.e(TAG, "Unable to access station data from server.", e);
@@ -322,11 +324,11 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 
 	}
 
-	private class StreamDescriptionArrayAdapter extends ArrayAdapter<StreamDescription> {
+	private class StreamDescriptionArrayAdapter extends ArrayAdapter<Object> {
 
-		private final List<StreamDescription> streamDescs;
+		private final List<Object> streamDescs;
 
-		public StreamDescriptionArrayAdapter(Context context, int textViewResourceId, List<StreamDescription> streamDescs) {
+		public StreamDescriptionArrayAdapter(Context context, int textViewResourceId, List<Object> streamDescs) {
 			super(context, textViewResourceId, streamDescs);
 			this.streamDescs = streamDescs;
 		}
@@ -340,7 +342,7 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 		}
 
 		@Override
-		public StreamDescription getItem(int position) {
+		public Object getItem(int position) {
 			return streamDescs.get(position);
 		}
 
@@ -351,7 +353,37 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			View vi = convertView;
+			 ViewHolder holder = null;
+	            int type = getItemViewType(position);
+
+	            if (convertView == null) {
+	                holder = new ViewHolder();
+	                switch (type) {
+	                    case 0:
+	                        convertView = getLayoutInflater().inflate(R.layout.list_item, null);
+	                        holder.textView = (TextView)convertView.findViewById(R.id.list_item_title);
+	                        break;
+	                    case 1:
+	                        convertView = getLayoutInflater().inflate(R.layout.list_item_separator, null);
+	                        holder.textView = (TextView)convertView.findViewById(R.id.list_separator_title);
+	                        break;
+	                }
+	                convertView.setTag(holder);
+	            } else {
+	                holder = (ViewHolder)convertView.getTag();
+	            }
+	            
+	            Object listElement = streamDescs.get(position);
+	            
+	            if (listElement instanceof String)
+	            	holder.textView.setText((String) listElement);
+	            else
+	            	holder.textView.setText(((StreamDescription) listElement).getName());
+	            
+	            return convertView;
+			
+			
+			/*View vi = convertView;
 			if (convertView == null)
 				vi = getLayoutInflater().inflate(R.layout.list_item, null);
 
@@ -361,7 +393,21 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 			text.setText(streamDescs.get(position).getName());
 			// image.setImageResource(R.drawable.ic_play);
 			// imageLoader.DisplayImage(data[position], image);
-			return vi;
+			return vi;*/
+		}
+			
+		
+		@Override
+		public int getViewTypeCount() {
+			return 2;
+		}
+		
+		@Override
+		public int getItemViewType(int position) {
+			if (streamDescs.get(position) instanceof StreamDescription)
+				return 0;
+			
+			return 1;
 		}
 	}
 
@@ -413,6 +459,24 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 		recentStreams.addStream(currentStream);
 	}
 
+	public List<Object> flattenStreams(List<StreamDescription> streams) {
+		Collections.sort(streams);
+		
+		IStreamCategory lastCategory = null;
+		List<Object> fs = new ArrayList<Object>();
+		
+		for (StreamDescription sd : streams) {
+			if (lastCategory == null || !lastCategory.equals(sd.getCategory())) {
+				fs.add(sd.getCategory().getName());
+				lastCategory = sd.getCategory();
+			}
+			
+			fs.add(sd);
+		}
+				
+		return fs;
+	}
+
 	@Override
 	public boolean onError(MediaPlayer mp, int what, int extra) {
 		showDialog("Error", "An error occurred while trying to load the station audio.", "Ok", new OnClickListener() {
@@ -425,4 +489,8 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 		
 		return true;
 	}
+	
+	public static class ViewHolder {
+        public TextView textView;
+    }
 }

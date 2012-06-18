@@ -27,7 +27,7 @@ import com.abk.rrp.util.RestClient;
  * @author kgilmer
  *
  */
-public class StreamDescription {
+public class StreamDescription implements Comparable<StreamDescription> {
 	
 	/**
 	 * Value for bitrate when none is defined or available.
@@ -39,7 +39,8 @@ public class StreamDescription {
 	//in kbs
 	private final int bitrate;
 	private final String country;
-	private String streamUrl;
+	private String streamUrl;	
+	private final IStreamCategory category;
 	
 	/**
 	 * @param id id of stream (id defined by stream directory)
@@ -48,13 +49,14 @@ public class StreamDescription {
 	 * @param bitrate bitrate of stream
 	 * @param country country of origin
 	 */
-	public StreamDescription(String id, String name, String url, int bitrate, String country) {
+	public StreamDescription(String id, String name, String url, int bitrate, String country, IStreamCategory category) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.url = url;
 		this.bitrate = bitrate;
 		this.country = country;
+		this.category = category;
 	}
 	
 	/**
@@ -76,6 +78,13 @@ public class StreamDescription {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 * @return category
+	 */
+	public IStreamCategory getCategory() {
+		return category;
 	}
 
 	/**
@@ -139,25 +148,40 @@ public class StreamDescription {
 	}
 
 	public static StreamDescription deserialize(String streamString) {
-		String [] elems = streamString.split(",");
+		String [] elems = streamString.split(StreamCategory.SERIALIZE_SEPARATOR);
 		
-		return new StreamDescription(elems[0], elems[1], elems[2], Integer.parseInt(elems[3]), elems[4]);
+		
+		IStreamCategory category = new StreamCategory(elems[5], elems[6], elems[7], null, null);
+		
+		return new StreamDescription(elems[0], elems[1], elems[2], Integer.parseInt(elems[3]), elems[4], category);
 	}
 
 	public String serialize() {		
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(id);
-		sb.append(",");
+		sb.append(StreamCategory.SERIALIZE_SEPARATOR);
 		sb.append(name);
-		sb.append(",");
+		sb.append(StreamCategory.SERIALIZE_SEPARATOR);
 		sb.append(url);
-		sb.append(",");
+		sb.append(StreamCategory.SERIALIZE_SEPARATOR);
 		sb.append(bitrate);
-		sb.append(",");
+		sb.append(StreamCategory.SERIALIZE_SEPARATOR);
 		sb.append(country);
+		sb.append(StreamCategory.SERIALIZE_SEPARATOR);
+		sb.append(category.serialize());
+		
 		
 		return sb.toString();
+	}
+
+	@Override
+	public int compareTo(StreamDescription another) {
+		if (getCategory().equals(another.getCategory())) {
+			return getName().compareTo(another.getName());
+		}
+		
+		return getCategory().getName().compareTo(another.getCategory().getName());
 	}
 	
 }

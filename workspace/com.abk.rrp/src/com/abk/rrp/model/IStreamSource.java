@@ -48,7 +48,7 @@ public interface IStreamSource {
 	 * @throws IOException
 	 * @throws JSONException
 	 */
-	public abstract List<IStreamCategory> getChildCategories(String parentId) throws IOException, JSONException;
+	public abstract List<IStreamCategory> getChildCategories(IStreamCategory parentCategory) throws IOException, JSONException;
 
 	/**
 	 * 
@@ -57,6 +57,6 @@ public interface IStreamSource {
 	 * @throws JSONException
 	 * @throws IOException
 	 */
-	public abstract List<StreamDescription> getStreams(String categoryId) throws JSONException, IOException;
+	public abstract List<StreamDescription> getStreams(IStreamCategory parentCategory) throws JSONException, IOException;
 
 }

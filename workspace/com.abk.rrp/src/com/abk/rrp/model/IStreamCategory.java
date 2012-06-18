@@ -36,13 +36,27 @@ public interface IStreamCategory {
 	 * @return description
 	 */
 	public abstract String getDescription();
+	
+	/**
+	 * @return
+	 */
+	public abstract boolean isRootCategory();
+	
+	/**
+	 * @return
+	 */
+	public abstract IStreamCategory getParentCategory();
 
 	/**
+	 * @param subCategory 
+	 * @param rootCategory 
 	 * @return List of StreamDiscription for all streams in category.
 	 * 
 	 * @throws JSONException
 	 * @throws IOException
 	 */
 	public abstract List<StreamDescription> getStreams() throws JSONException, IOException;
+
+	public abstract String serialize();
 
 }

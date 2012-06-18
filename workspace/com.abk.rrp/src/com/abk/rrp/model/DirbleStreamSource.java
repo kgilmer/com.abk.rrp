@@ -108,7 +108,7 @@ public class DirbleStreamSource implements IStreamSource {
 		
 		for (int i = 0; i < response.length(); ++i) {
 			JSONObject jo = response.getJSONObject(i);
-			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description"), this));		
+			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description"), this, null));		
 		}
 		
 		return rl;
@@ -125,7 +125,7 @@ public class DirbleStreamSource implements IStreamSource {
 		
 		for (int i = 0; i < response.length(); ++i) {
 			JSONObject jo = response.getJSONObject(i);
-			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description"), this));		
+			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description"), this, null));		
 		}
 		
 		return rl;
@@ -135,14 +135,14 @@ public class DirbleStreamSource implements IStreamSource {
 	 * @see com.abk.rrp.model.IStreamSource#getChildCategories(java.lang.String)
 	 */
 	@Override
-	public List<IStreamCategory> getChildCategories(String parentId) throws IOException, JSONException {
+	public List<IStreamCategory> getChildCategories(IStreamCategory parentCategory) throws IOException, JSONException {
 		List<IStreamCategory> rl = new ArrayList<IStreamCategory>();
 		
-		JSONArray response = getJSONArray(childCategoryUrl.copy(parentId).toString());
+		JSONArray response = getJSONArray(childCategoryUrl.copy(parentCategory.getId()).toString());
 		
 		for (int i = 0; i < response.length(); ++i) {
 			JSONObject jo = response.getJSONObject(i);
-			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description"), this));		
+			rl.add(new StreamCategory("" + jo.getInt("id"), jo.getString("name"), jo.getString("description"), this, parentCategory));		
 		}
 		
 		return rl;
@@ -152,15 +152,21 @@ public class DirbleStreamSource implements IStreamSource {
 	 * @see com.abk.rrp.model.IStreamSource#getStreams(java.lang.String)
 	 */
 	@Override
-	public List<StreamDescription> getStreams(String categoryId) throws JSONException, IOException {
+	public List<StreamDescription> getStreams(IStreamCategory category) throws JSONException, IOException {
 		List<StreamDescription> rl = new ArrayList<StreamDescription>();
 		
-		JSONArray response = getJSONArray(stationUrl.copy(categoryId).toString());
+		JSONArray response = getJSONArray(stationUrl.copy(category.getId()).toString());
 		
 		if (!isErrorResponse(response))	{
 			for (int i = 0; i < response.length(); ++i) {
 				JSONObject jo = response.getJSONObject(i);
-				rl.add(new StreamDescription("" + jo.getInt("id"), jo.getString("name"), jo.getString("streamurl"), parseBitrateField(jo.getString("bitrate")), jo.getString("country")));		
+				rl.add(new StreamDescription(
+						"" + jo.getInt("id"), 
+						jo.getString("name"), 
+						jo.getString("streamurl"), 
+						parseBitrateField(jo.getString("bitrate")), 
+						jo.getString("country"),
+						category));		
 			}
 		}
 		

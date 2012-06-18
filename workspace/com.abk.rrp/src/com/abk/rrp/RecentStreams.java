@@ -114,4 +114,19 @@ public class RecentStreams implements IStreamCategory {
 		return streams;
 	}
 
+	@Override
+	public boolean isRootCategory() {
+		return true;
+	}
+
+	@Override
+	public IStreamCategory getParentCategory() {
+		return null;
+	}
+
+	@Override
+	public String serialize() {	
+		return "";
+	}
+
 }
