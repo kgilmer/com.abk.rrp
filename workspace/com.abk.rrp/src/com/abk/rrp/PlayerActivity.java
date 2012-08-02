@@ -57,6 +57,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.abk.rrp.model.IStreamCategory;
 import com.abk.rrp.model.IStreamSource;
@@ -172,7 +173,12 @@ public class PlayerActivity extends GDActivity implements OnPreparedListener, On
 			stopStream();
 		}
 
-		mediaPlayer.setDataSource(streamUrl);
+		try {
+			mediaPlayer.setDataSource(streamUrl);
+		} catch (IllegalArgumentException e) {
+			Toast.makeText(this, "Unable to load stream.", 15);
+			return;
+		}
 		mediaPlayer.prepareAsync();		
 	}
 
